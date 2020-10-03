@@ -35,3 +35,7 @@ This project is still in very early stages and needs a lot of work for full lua 
 ## Pull Requests
 
 I will look at any pull requests, but I'd prefer to know ahead of time that you are working on one so that we can avoid conflicts or duplicated effort.
+
+## Building
+
+See [BUILDING.md](BUILDING.md).

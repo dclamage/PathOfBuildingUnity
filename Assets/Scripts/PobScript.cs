@@ -5,15 +5,18 @@ using UnityEngine;
 using LuaExtensions;
 using MoonSharp.Interpreter;
 using System.IO;
+using System.Collections.Generic;
+using System.Threading;
 
 namespace PathOfBuilding
 {
     public class PobScript : Script
     {
-        public static void StaticInit()
+        public static void StaticInit(AsyncTextureLoader asyncTextureLoader)
         {
             if (!initCalled)
             {
+                PobScript.asyncTextureLoader = asyncTextureLoader;
                 GlobalOptions.Platform = new PobPlatformAccessor(basePath);
                 UserData.RegisterAssembly();
                 initCalled = true;
@@ -24,7 +27,15 @@ namespace PathOfBuilding
         public PobScript() : base()
         {
             Options.ScriptLoader = new PobScriptLoader();
+
+            // Callbacks
+            Globals["SetCallback"] = (Action<string, DynValue>)SetCallback;
+            Globals["GetCallback"] = (Func<string, DynValue>)GetCallback;
             Globals["SetMainObject"] = (Action<Table>)SetMainObject;
+
+            // Image handles
+            Globals["NewImageHandle"] = (Func<DynValue>)(() => UserData.Create(new ImageHandle()));
+
             Globals["SetWindowTitle"] = (Action<string>)SetWindowTitle;
             Globals["ConExecute"] = (Action<string>)ConExecute;
             Globals["ConClear"] = (Action)ConClear;
@@ -34,8 +45,29 @@ namespace PathOfBuilding
             Globals["PLoadModule"] = (Func<DynValue[], DynValue>)PLoadModule;
             Globals["LoadModule"] = (Func<DynValue[], DynValue>)LoadModule;
             Globals["PCall"] = (Func<DynValue[], DynValue>)PCall;
+
+            // Extension Libraries
             Globals["bit"] = typeof(BitOps);
+
+            // Extras
             Globals["GetCurl"] = (Func<DynValue>)GetCurl;
+            Globals["Sleep"] = (Action<DynValue>)Sleep;
+        }
+
+        #region Callbacks
+        protected void SetCallback(string name, DynValue func)
+        {
+            callbacks[name] = func;
+        }
+
+        protected DynValue GetCallback(string name)
+        {
+            DynValue func;
+            if (callbacks.TryGetValue(name, out func))
+            {
+                return func;
+            }
+            return DynValue.Nil;
         }
 
         protected void SetMainObject(Table mainObject)
@@ -43,6 +75,7 @@ namespace PathOfBuilding
             Debug.Log($"SetMainObject: {mainObject}");
             MainObject = mainObject;
         }
+        #endregion
 
         protected void SetWindowTitle(string windowTitle)
         {
@@ -89,7 +122,7 @@ namespace PathOfBuilding
                     }
                     else
                     {
-                        switch (formatStr[nextPercent + 1])
+                        switch (formatStr[1])
                         {
                             case 's':
                                 if (valIndex < vals.Length)
@@ -148,12 +181,12 @@ namespace PathOfBuilding
         protected static DynValue ErrorTuple(string err)
         {
             Debug.LogError(err);
-            return DynValue.NewTuple(DynValue.NewString(err), DynValue.NewNil());
+            return DynValue.NewTuple(DynValue.NewString(err), DynValue.Nil);
         }
 
         protected static DynValue SuccessTuple(DynValue value)
         {
-            return DynValue.NewTupleNested(DynValue.NewNil(), value);
+            return DynValue.NewTupleNested(DynValue.Nil, value);
         }
 
         protected DynValue PLoadModule(params DynValue[] values)
@@ -250,13 +283,23 @@ namespace PathOfBuilding
             return Call(func, values.Skip(1).ToArray());
         }
 
+        #region Extras
         protected DynValue GetCurl()
         {
             return new Curl(this).Table();
         }
 
+        protected void Sleep(DynValue durationVal)
+        {
+            double ms = durationVal != null && durationVal.Type == DataType.Number ? durationVal.Number : 0;
+            Thread.Sleep((int)Math.Round(ms));
+        }
+        #endregion
+
         public Table MainObject { get; protected set; }
-        private static readonly string basePath = @"C:\ProgramData\Path of Building\";
+        private Dictionary<string, DynValue> callbacks = new Dictionary<string, DynValue>();
+        public static readonly string basePath = @"C:\ProgramData\Path of Building\";
+        public static AsyncTextureLoader asyncTextureLoader = null;
         private static readonly DateTime epochTime = DateTime.UtcNow;
     }
 }

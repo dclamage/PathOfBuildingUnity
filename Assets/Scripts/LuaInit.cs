@@ -6,10 +6,14 @@ using PathOfBuilding;
 
 public class LuaInit : MonoBehaviour
 {
+    [Header("Engine References")]
+    [SerializeField]
+    private GameObject asyncTextureLoader = null;
+
     // Start is called before the first frame update
     async void Start()
     {
-        PobScript.StaticInit();
+        PobScript.StaticInit(asyncTextureLoader.GetComponent<AsyncTextureLoader>());
         launchScript = new PobScript();
         await Task.Run(async () => await InitScript());
     }

@@ -82,7 +82,7 @@ namespace LuaExtensions
                 case "INFO_RESPONSE_CODE":
                     return DynValue.NewNumber(internalData.responseCode);
             }
-            return DynValue.NewNil();
+            return DynValue.Nil;
         }
 
         private void Perform(Table easy)

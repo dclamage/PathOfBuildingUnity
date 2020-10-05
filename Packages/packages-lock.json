@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "com.ionic.zlib": {
+      "version": "https://github.com/PixelWizards/com.ionic.zlib.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "c00e1706ea9d93d8b709947be6e4b56b0b594ecf"
+    },
     "com.unity.2d.animation": {
       "version": "4.2.5",
       "depth": 0,

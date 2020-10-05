@@ -1,12 +1,6 @@
-﻿using System;
-using System.IO;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 using UnityEngine;
 using MoonSharp.Interpreter;
-using UnityEngine.UI;
 
 namespace PathOfBuilding
 {
@@ -55,17 +49,17 @@ namespace PathOfBuilding
                 textureLoadHandle.Cancel();
                 textureLoadHandle = null;
             }
-            if (texture != null)
+            if (Texture != null)
             {
-                UnityEngine.Object.Destroy(texture);
-                texture = null;
+                UnityEngine.Object.Destroy(Texture);
+                Texture = null;
             }
         }
 
         public bool IsValid()
         {
             ApplyLoadedTexture();
-            return textureLoadHandle != null || texture != null;
+            return textureLoadHandle != null || Texture != null;
         }
 
         public bool IsLoading()
@@ -90,14 +84,15 @@ namespace PathOfBuilding
         {
             if (textureLoadHandle != null && textureLoadHandle.Complete)
             {
-                texture = textureLoadHandle.Texture;
+                Texture = textureLoadHandle.Texture;
                 width = textureLoadHandle.Width;
                 height = textureLoadHandle.Height;
                 textureLoadHandle = null;
             }
         }
 
-        private Texture2D texture = null;
+        public Texture2D Texture { get; private set; } = null;
+
         private int width = 0;
         private int height = 0;
         private AsyncTextureLoader.ITextureLoadHandle textureLoadHandle = null;

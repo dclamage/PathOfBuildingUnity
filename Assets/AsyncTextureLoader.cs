@@ -22,6 +22,8 @@ public class AsyncTextureLoader : MonoBehaviour
         return textureLoadHandle;
     }
 
+    public int QueueCount => createTextureQueue.Count;
+
     public interface ITextureLoadHandle
     {
         Texture2D Texture { get; }
